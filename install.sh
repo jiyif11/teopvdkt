@@ -14,6 +14,7 @@ echo "Installing python dependencies from requirements.txt"
 pip install -r requirements-local_chat.txt
 pip install -r ktransformers/server/requirements.txt
 echo "Installing ktransformers"
+patch third_party/llama.cpp/ggml-common.h < ggml-common.patch
 KTRANSFORMERS_FORCE_BUILD=TRUE pip install -v . --no-build-isolation
 pip install third_party/custom_flashinfer/
 
