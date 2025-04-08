@@ -325,6 +325,8 @@ class CMakeBuild(BuildExtension):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+            "-DCMAKE_C_FLAGS=-march=armv8.6-a+fp+simd+sve+sve2+i8mm+f32mm+f64mm+fp16+bf16+fp16fml+crc",
+            "-DCMAKE_CXX_FLAGS=-march=armv8.6-a+fp+simd+sve+sve2+i8mm+f32mm+f64mm+fp16+bf16+fp16fml+crc",
         ]
 
         if CUDA_HOME is not None:
