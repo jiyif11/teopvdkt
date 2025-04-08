@@ -25,11 +25,10 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from packaging.version import parse
-import torch
 import torch.version
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from setuptools import setup, Extension
-from cpufeature.extension import CPUFeature
+# from cpufeature.extension import CPUFeature
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME, ROCM_HOME
 try:
     from torch_musa.utils.simple_porting import SimplePorting
@@ -44,10 +43,12 @@ class CpuInstructInfo:
     FANCY = "FANCY"
     AVX512 = "AVX512"
     AVX2 = "AVX2"
+    NEON = "NEON"  # Add NEON for ARM
     CMAKE_NATIVE = "-DLLAMA_NATIVE=ON"
     CMAKE_FANCY = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON -DLLAMA_AVX512_FANCY_SIMD=ON"
     CMAKE_AVX512 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON"
     CMAKE_AVX2 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON"
+    CMAKE_NEON = "-DLLAMA_NEON=ON"  # Add NEON flag for ARM
 
 class VersionInfo:
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -149,8 +150,11 @@ class VersionInfo:
         """
         Returns the platform name as used in wheel filenames.
         """
+        machine = platform.uname().machine
         if sys.platform.startswith("linux"):
-            return f'linux_{platform.uname().machine}'
+            if machine.startswith(('arm', 'aarch64')):
+                return f'linux_{machine}'
+            return f'linux_{machine}'
         elif sys.platform == "win32":
             return "win_amd64"
         else:
@@ -163,9 +167,21 @@ class VersionInfo:
             return "avx512"
         elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.AVX2:
             return "avx2"
+        elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.NEON:
+            return "neon"
         else:
             print("Using native cpu instruct")
-        if sys.platform.startswith("linux"):
+
+        machine = platform.uname().machine
+        if machine.startswith(('arm', 'aarch64')):
+            # ARM architecture - check for NEON support
+            if sys.platform.startswith("linux"):
+                with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
+                    cpuinfo = cpu_f.read()
+                if 'neon' in cpuinfo.lower() or 'asimd' in cpuinfo.lower():
+                    return 'neon'
+                return 'native'   
+        elif sys.platform.startswith("linux"):
             with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
                 cpuinfo = cpu_f.read()
             flags_line = [line for line in cpuinfo.split(
@@ -282,13 +298,6 @@ class CMakeExtension(Extension):
         print(name, sourcedir)
         self.sourcedir = sourcedir
 
-def get_cmake_abi_args(cmake_args):
-    if torch.compiled_with_cxx11_abi():
-        cmake_args.append("-D_GLIBCXX_USE_CXX11_ABI=1")
-    else:
-        cmake_args.append("-D_GLIBCXX_USE_CXX11_ABI=0")
-    return cmake_args
-
 class CMakeBuild(BuildExtension):
 
     def build_extension(self, ext) -> None:
@@ -326,8 +335,6 @@ class CMakeBuild(BuildExtension):
             cmake_args += ["-DKTRANSFORMERS_USE_ROCM=ON"]
         else:
             raise ValueError("Unsupported backend: CUDA_HOME, MUSA_HOME, and ROCM_HOME are not set.")
-        
-        cmake_args = get_cmake_abi_args(cmake_args)
         # log cmake_args
         print("CMake args:", cmake_args)
 
