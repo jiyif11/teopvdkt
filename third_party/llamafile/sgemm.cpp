@@ -25,7 +25,7 @@
 // #include <cpuid.h>
 // #include <libc/sysv/consts/hwcap.h>
 #include <stdio.h>
-// #include <sys/auxv.h>
+#include <sys/auxv.h>
 #include <cassert>
 // #include "llamafile.h"
 
