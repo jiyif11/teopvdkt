@@ -48,7 +48,7 @@ class CpuInstructInfo:
     CMAKE_FANCY = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON -DLLAMA_AVX512_FANCY_SIMD=ON"
     CMAKE_AVX512 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON"
     CMAKE_AVX2 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON"
-    CMAKE_NEON = "-DLLAMA_NEON=ON"  # Add NEON flag for ARM
+    CMAKE_NEON = "-DLLAMA_NATIVE=ON -DLLAMA_NEON=ON"  # Add NEON flag for ARM
 
 class VersionInfo:
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -351,6 +351,8 @@ class CMakeBuild(BuildExtension):
             cpu_args = CpuInstructInfo.CMAKE_AVX512
         elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.AVX2:
             cpu_args = CpuInstructInfo.CMAKE_AVX2
+        elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.NEON:
+            cpu_args = CpuInstructInfo.CMAKE_NEON
         else:
             cpu_args = CpuInstructInfo.CMAKE_NATIVE
 
