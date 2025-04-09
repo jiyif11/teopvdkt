@@ -47,13 +47,10 @@ class CpuInstructInfo:
     FANCY = "FANCY"
     AVX512 = "AVX512"
     AVX2 = "AVX2"
-    NEON = "NEON"  # Add NEON for ARM
     CMAKE_NATIVE = "-DLLAMA_NATIVE=ON"
     CMAKE_FANCY = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON -DLLAMA_AVX512_FANCY_SIMD=ON"
     CMAKE_AVX512 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON"
     CMAKE_AVX2 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON"
-    CMAKE_NEON = "-DLLAMA_NATIVE=ON -DLLAMA_NEON=ON"  # Add NEON flag for ARM
-
 class VersionInfo:
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     PACKAGE_NAME = "ktransformers"
@@ -171,21 +168,10 @@ class VersionInfo:
             return "avx512"
         elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.AVX2:
             return "avx2"
-        elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.NEON:
-            return "neon"
         else:
-            print("Using native cpu instruct")
-
-        machine = platform.uname().machine
-        if machine.startswith(('arm', 'aarch64')):
-            # ARM architecture - check for NEON support
+            return "native"
+            print("Using native cpu instruct")            
             if sys.platform.startswith("linux"):
-                with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
-                    cpuinfo = cpu_f.read()
-                if 'neon' in cpuinfo.lower() or 'asimd' in cpuinfo.lower():
-                    return 'neon'
-                return 'native'   
-        elif sys.platform.startswith("linux"):
             with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
                 cpuinfo = cpu_f.read()
             flags_line = [line for line in cpuinfo.split(
@@ -329,8 +315,6 @@ class CMakeBuild(BuildExtension):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
-            "-DCMAKE_C_FLAGS=-march=armv9-a+fp+simd+sve+sve2+i8mm+f32mm+f64mm+fp16+bf16+fp16fml+crc",
-            "-DCMAKE_CXX_FLAGS=-march=armv9-a+fp+simd+sve+sve2+i8mm+f32mm+f64mm+fp16+bf16+fp16fml+crc",
         ]
 
         if CUDA_HOME is not None:
@@ -355,8 +339,6 @@ class CMakeBuild(BuildExtension):
             cpu_args = CpuInstructInfo.CMAKE_AVX512
         elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.AVX2:
             cpu_args = CpuInstructInfo.CMAKE_AVX2
-        elif CpuInstructInfo.CPU_INSTRUCT == CpuInstructInfo.NEON:
-            cpu_args = CpuInstructInfo.CMAKE_NEON
         else:
             cpu_args = CpuInstructInfo.CMAKE_NATIVE
 
