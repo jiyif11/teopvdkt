@@ -28,7 +28,11 @@ from packaging.version import parse
 import torch.version
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from setuptools import setup, Extension
-# from cpufeature.extension import CPUFeature
+if sys.platform == "win32":
+    try:
+        from cpufeature.extension import CPUFeature
+    except ImportError:
+        print("Warning: cpufeature module not installed.")
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME, ROCM_HOME
 try:
     from torch_musa.utils.simple_porting import SimplePorting
