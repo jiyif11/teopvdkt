@@ -108,7 +108,7 @@ if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64" OR CMAKE_GENERATOR_PLATFORM_LWR STR
         if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv9")
             # Android arm64-v8a
             # Raspberry Pi 3, 4, Zero 2 (32-bit)
-            list(APPEND ARCH_FLAGS -march=armv9-a -mfpu=neon-fp-armv9 -mno-unaligned-access)
+            list(APPEND ARCH_FLAGS -march=armv9-a+fp+simd+sve+sve2+i8mm+f32mm+f64mm+fp16+bf16+fp16fml+crc -mno-unaligned-access)
         endif()
     endif()
 elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64" OR CMAKE_GENERATOR_PLATFORM_LWR MATCHES "^(x86_64|i686|amd64|x64|win32)$" OR
