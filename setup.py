@@ -171,7 +171,7 @@ class VersionInfo:
         else:
             return "native"
             print("Using native cpu instruct")            
-            if sys.platform.startswith("linux"):
+        if sys.platform.startswith("linux"):
             with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
                 cpuinfo = cpu_f.read()
             flags_line = [line for line in cpuinfo.split(
