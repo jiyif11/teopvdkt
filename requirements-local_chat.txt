@@ -1,10 +1,9 @@
-fire
+-i https://download.pytorch.org/whl/nightly/cu128fire
 transformers==4.43.2
 packaging
 ninja
 numpy
---extra-index-url https://download.pytorch.org/whl/nightly/cu128
-torch>=2.3.0
+torch
 packaging
 cpufeature; sys_platform == 'win32'
 protobuf
