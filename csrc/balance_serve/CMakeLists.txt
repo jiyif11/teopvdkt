@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.21)
-find_program(GCC_COMPILER NAMES g++-13 g++-12 g++-11 REQUIRED)
+find_program(GCC_COMPILER NAMES g++-13 g++-12 g++-11 g++ REQUIRED)
 set(CMAKE_CXX_COMPILER ${GCC_COMPILER})
 
 # 显示选定的编译器
@@ -38,6 +38,7 @@ set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 set(THIRD_PARTY_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/third_party)
 add_subdirectory(${THIRD_PARTY_DIR}/prometheus-cpp ${THIRD_PARTY_BUILD_DIR}/prometheus-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(${THIRD_PARTY_DIR}/xxHash/cmake_unofficial ${THIRD_PARTY_BUILD_DIR}/xxHash EXCLUDE_FROM_ALL)
+set_target_properties(xxhash PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/prometheus-cpp ${CMAKE_CURRENT_BINARY_DIR}/third_party/prometheus-cpp)
 set(SPDLOG_DIR ${THIRD_PARTY_DIR}/spdlog)
