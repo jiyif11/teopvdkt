@@ -1,4 +1,9 @@
-#include <immintrin.h>
+#if defined(__ARM_NEON) || defined(__aarch64__)
+    #include <arm_neon.h>
+#else
+    #include <immintrin.h>
+#endif
+
 #include <tbb/concurrent_hash_map.h>
 
 #include <algorithm>

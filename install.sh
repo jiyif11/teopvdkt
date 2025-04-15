@@ -11,10 +11,11 @@ rm -rf csrc/ktransformers_ext/cuda/dist
 rm -rf csrc/ktransformers_ext/cuda/*.egg-info
 rm -rf ~/.ktransformers
 echo "Installing python dependencies from requirements.txt"
+#pip install torch torchvision torchaudio -i https://download.pytorch.org/whl/nightly/cu128
 pip install -r requirements-local_chat.txt
 pip install -r ktransformers/server/requirements.txt
 echo "Installing ktransformers"
-patch third_party/llama.cpp/ggml-common.h < ggml-common.patch
+#patch third_party/llama.cpp/ggml-common.h < ggml-common.patch
 KTRANSFORMERS_FORCE_BUILD=TRUE pip install -v . --no-build-isolation
 pip install third_party/custom_flashinfer/
 

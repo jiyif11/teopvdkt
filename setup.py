@@ -40,6 +40,11 @@ try:
 except ImportError:
     MUSA_HOME=None
     
+import torch
+capability = torch.cuda.get_device_capability()
+arch_list = f"{capability[0]}.{capability[1]}"
+os.environ["TORCH_CUDA_ARCH_LIST"] = arch_list
+
 with_balance = os.environ.get("USE_BALANCE_SERVE", "0") == "1"
 
 class CpuInstructInfo:
@@ -47,10 +52,11 @@ class CpuInstructInfo:
     FANCY = "FANCY"
     AVX512 = "AVX512"
     AVX2 = "AVX2"
-    CMAKE_NATIVE = "-DLLAMA_NATIVE=ON"
+    CMAKE_NATIVE = "-DLLAMA_NATIVE=ON -D_GLIBCXX_USE_CXX11_ABI=1 -DCMAKE_C_FLAGS=-mcpu=neoverse-n2 -DCMAKE_CXX_FLAGS=-mcpu=neoverse-n2"
     CMAKE_FANCY = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON -DLLAMA_AVX512_FANCY_SIMD=ON"
     CMAKE_AVX512 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON"
     CMAKE_AVX2 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON"
+
 class VersionInfo:
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     PACKAGE_NAME = "ktransformers"
@@ -72,17 +78,17 @@ class VersionInfo:
     def get_rocm_bare_metal_version(self, rocm_dir):
         """
         Get the ROCm version from the ROCm installation directory.
-
+        
         Args:
             rocm_dir: Path to the ROCm installation directory
-
+        
         Returns:
             A string representation of the ROCm version (e.g., "63" for ROCm 6.3)
         """
         try:
             # Try using rocm_agent_enumerator to get version info
             raw_output = subprocess.check_output(
-                [rocm_dir + "/bin/rocminfo", "--version"],
+                [rocm_dir + "/bin/rocminfo", "--version"], 
                 universal_newlines=True,
                 stderr=subprocess.STDOUT)
             # Extract version number from output
@@ -95,7 +101,7 @@ class VersionInfo:
         except (subprocess.CalledProcessError, FileNotFoundError):
             # If rocminfo --version fails, try alternative methods
             pass
-
+        
         try:
             # Try reading version from release file
             with open(os.path.join(rocm_dir, "share/doc/hip/version.txt"), "r") as f:
@@ -105,7 +111,7 @@ class VersionInfo:
                 return rocm_version
         except (FileNotFoundError, IOError):
             pass
-
+        
         # If all else fails, try to extract from directory name
         dir_name = os.path.basename(os.path.normpath(rocm_dir))
         match = re.search(r'rocm-(\d+\.\d+)', dir_name)
@@ -114,7 +120,7 @@ class VersionInfo:
             version = parse(version_str)
             rocm_version = f"{version.major}{version.minor}"
             return rocm_version
-
+        
         # Fallback to extracting from hipcc version
         try:
             raw_output = subprocess.check_output(
@@ -129,7 +135,7 @@ class VersionInfo:
                 return rocm_version
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
-
+        
         # If we still can't determine the version, raise an error
         raise ValueError(f"Could not determine ROCm version from directory: {rocm_dir}")
 
@@ -151,11 +157,8 @@ class VersionInfo:
         """
         Returns the platform name as used in wheel filenames.
         """
-        machine = platform.uname().machine
         if sys.platform.startswith("linux"):
-            if machine.startswith(('arm', 'aarch64')):
-                return f'linux_{machine}'
-            return f'linux_{machine}'
+            return f'linux_{platform.uname().machine}'
         elif sys.platform == "win32":
             return "win_amd64"
         else:
@@ -170,7 +173,7 @@ class VersionInfo:
             return "avx2"
         else:
             return "native"
-            print("Using native cpu instruct")            
+            print("Using native cpu instruct")
         if sys.platform.startswith("linux"):
             with open('/proc/cpuinfo', 'r', encoding="utf-8") as cpu_f:
                 cpuinfo = cpu_f.read()
@@ -315,6 +318,7 @@ class CMakeBuild(BuildExtension):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+
         ]
 
         if CUDA_HOME is not None:
@@ -324,10 +328,10 @@ class CMakeBuild(BuildExtension):
         elif ROCM_HOME is not None:
             cmake_args += ["-DKTRANSFORMERS_USE_ROCM=ON"]
         else:
-            raise ValueError("Unsupported backend: CUDA_HOME, MUSA_HOME, and ROCM_HOME are not set.")
+            raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
         # log cmake_args
         print("CMake args:", cmake_args)
-
+        
         build_args = []
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [
