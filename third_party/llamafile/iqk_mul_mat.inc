@@ -48,7 +48,7 @@
 #define IQK_ALWAYS_INLINE inline
 #else
 #define IQK_NOINLINE __attribute__((__noinline__))
-#define IQK_ALWAYS_INLINE __attribute__((always_inline))
+#define IQK_ALWAYS_INLINE inline __attribute__((always_inline))
 #endif
 
 #define GGML_COMMON_IMPL_C
@@ -4851,7 +4851,8 @@ template <typename Dequantizer> void MulMat::set_functions(MulMat& m) {
     }
 }
 
-bool MulMat::set_mul_mat(int typeA, int ne00, MulMat& m, int& row_size_q8, int Ny) {
+bool MulMat::set_mul_mat(int typeA, int typeB, int ne00, MulMat& m, int Ny) {
+    size_t row_size_q8; // Or potentially `int` if that's the convention used elsewhere
     row_size_q8 = ggml_row_size(GGML_TYPE_Q8_K, ne00);
 
     (void)Ny;
