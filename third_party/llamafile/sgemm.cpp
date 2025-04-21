@@ -141,11 +141,23 @@ static const struct GemmFuncs {
 #endif
 
 #elif defined(__aarch64__)
+//        long hwcap = getauxval(AT_HWCAP);
+//        if ((hwcap & HWCAP_FPHP) &&     // fp16 scalar isa (ID_AA64PFR0_EL1.FP == 1)
+//            (hwcap & HWCAP_ASIMDHP) &&  // fp16 vector isa (ID_AA64PFR0_EL1.AdvSIMD == 1)
+//            (hwcap & HWCAP_ASIMDDP)) {  // dotprod isa (ID_AA64ISAR0_EL1.DP == 1)
             // e.g. Apple M1, Raspberry Pi 5
             sgemm = llamafile_sgemm_arm82;
             mixmul = llamafile_mixmul_arm82;
             iqk_mixmul = iqk_mul_mat_moe_arm82;
-
+//        } else {
+            // ARM64 baseline ISA
+//            sgemm = llamafile_sgemm_arm80;
+//            mixmul = llamafile_mixmul_arm80;
+//        }
+//#else
+//        sgemm = llamafile_sgemm_unsupported;
+//        mixmul = llamafile_mixmul_unsupported;
+#endif
     }
 } funcs;
 
