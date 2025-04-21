@@ -1,5 +1,5 @@
-#if defined(__ARM_NEON) || defined(__aarch64__)
-    #include <arm_neon.h>
+#if defined(__ARM_FEATURE_SVE2) || defined(__aarch64__)
+    #include <arm_sve.h>
 #else
     #include <immintrin.h>
 #endif
