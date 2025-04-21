@@ -16,6 +16,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from ktransformers.server.api import router, post_db_creation_operations
 from ktransformers.server.utils.sql_utils import Base, SQLUtil
 from ktransformers.server.config.log import logger
+import torch
+capability = torch.cuda.get_device_capability()
+arch_list = f"{capability[0]}.{capability[1]}"
+os.environ["TORCH_CUDA_ARCH_LIST"] = arch_list
 
 
 def mount_app_routes(mount_app: FastAPI):

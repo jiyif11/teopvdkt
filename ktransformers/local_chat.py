@@ -32,6 +32,10 @@ from ktransformers.util.utils import prefill_and_generate, get_compute_capabilit
 from ktransformers.server.config.config import Config
 from ktransformers.operators.flashinfer_wrapper import flashinfer_enabled
 from ktransformers.util.vendors import device_manager, get_device, to_device, GPUVendor
+import torch
+capability = torch.cuda.get_device_capability()
+arch_list = f"{capability[0]}.{capability[1]}"
+os.environ["TORCH_CUDA_ARCH_LIST"] = arch_list
 
 custom_models = {
     "DeepseekV2ForCausalLM": DeepseekV2ForCausalLM,
