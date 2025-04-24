@@ -31,6 +31,10 @@ dependencies = [
   "protobuf"
 ]
 
+[tool.uv]
+index-url = "https://download.pytorch.org/whl/cu126"
+extra-index-url = ["https://pypi.tuna.tsinghua.edu.cn/simple"]
+
 requires-python = ">=3.10"
 
 authors = [
