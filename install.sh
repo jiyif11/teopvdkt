@@ -11,7 +11,7 @@ rm -rf csrc/ktransformers_ext/cuda/dist
 rm -rf csrc/ktransformers_ext/cuda/*.egg-info
 rm -rf ~/.ktransformers
 echo "Installing python dependencies from requirements.txt"
-#pip install torch torchvision torchaudio -i https://download.pytorch.org/whl/nightly/cu128
+pip install torch -i https://download.pytorch.org/whl/nightly/cu128
 pip install -r requirements-local_chat.txt
 pip install -r ktransformers/server/requirements.txt
 echo "Installing ktransformers"
@@ -19,10 +19,10 @@ patch -sr /dev/null -p1 --batch --forward third_party/llama.cpp/ggml-common.h < 
 KTRANSFORMERS_FORCE_BUILD=TRUE pip install -v . --no-build-isolation
 pip install third_party/custom_flashinfer/
 
-# SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
-# echo "Copying thirdparty libs to $SITE_PACKAGES"
-# cp -a csrc/balance_serve/build/third_party/prometheus-cpp/lib/libprometheus-cpp-*.so* $SITE_PACKAGES/
-# patchelf --set-rpath '$ORIGIN' $SITE_PACKAGES/sched_ext.cpython*
+SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
+echo "Copying thirdparty libs to $SITE_PACKAGES"
+cp -a csrc/balance_serve/build/third_party/prometheus-cpp/lib/libprometheus-cpp-*.so* $SITE_PACKAGES/
+patchelf --set-rpath '$ORIGIN' $SITE_PACKAGES/sched_ext.cpython*
 
 
 echo "Installation completed successfully"
