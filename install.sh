@@ -15,7 +15,8 @@ pip install torch -i https://download.pytorch.org/whl/nightly/cu128
 pip install -r requirements-local_chat.txt
 pip install -r ktransformers/server/requirements.txt
 echo "Installing ktransformers"
-patch -sr /dev/null -p1 --batch --forward third_party/llama.cpp/ggml-common.h < ggml-common.patch
+export USE_BALANCE_SERVE=1
+patch -sr /dev/null -p1 --batch --forward third_party/llama.cpp/ggml-common.h < ggml-common.patch || true
 KTRANSFORMERS_FORCE_BUILD=TRUE pip install -v . --no-build-isolation
 pip install third_party/custom_flashinfer/
 
