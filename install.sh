@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e  
-
+git submodule update --init --recursive
 # clear build dirs
 rm -rf build
 rm -rf *.egg-info
