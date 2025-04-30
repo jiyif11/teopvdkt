@@ -1,6 +1,7 @@
 import argparse
 from ktransformers.server.backend.args import ConfigArgs, default_args
 from ktransformers.util.utils import get_free_ports
+from transformers import AutoConfig
 
 class ArgumentParser:
     def __init__(self, cfg):
@@ -20,6 +21,7 @@ class ArgumentParser:
         parser.add_argument(
             "--device", type=str, default=self.cfg.model_device, help="Warning: Abandoning this parameter"
         )
+        parser.add_argument("--architectures", type=str, default=self.cfg.model_name)
         parser.add_argument("--gguf_path", type=str, default=self.cfg.gguf_path)
         parser.add_argument("--optimize_config_path", default=None, type=str, required=False)
         parser.add_argument("--cpu_infer", type=int, default=self.cfg.cpu_infer)
@@ -137,7 +139,11 @@ class ArgumentParser:
         self.cfg.server_port = args.port
         self.cfg.user_force_think = args.force_think
         
-        args.gpu_memory_size = args.cache_lens*2*576*61
+        model_config = AutoConfig.from_pretrained(args.model_dir, trust_remote_code=True)
+        if args.architectures == "Qwen3MoeForCausalLM" or args.architectures == "Qwen2MoeForCausalLM" :
+            args.gpu_memory_size = args.cache_lens*2*2*model_config.num_hidden_layers*model_config.num_key_value_heads*model_config.head_dim
+        else:
+            args.gpu_memory_size = args.cache_lens*2*576*61
         self.cfg.gpu_memory_size = args.gpu_memory_size
         free_ports = get_free_ports(3, [args.port])
         args.sched_port = free_ports[0]
