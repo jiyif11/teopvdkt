@@ -4852,7 +4852,7 @@ template <typename Dequantizer> void MulMat::set_functions(MulMat& m) {
     }
 }
 
-bool MulMat::set_mul_mat(int typeA, int typeB, int ne00, MulMat& m, int Ny) {
+bool MulMat::set_mul_mat(int typeA, int row_size_q8, int ne00, MulMat& m, int Ny) {
     size_t row_size_q8; // Or potentially `int` if that's the convention used elsewhere
     row_size_q8 = ggml_row_size(GGML_TYPE_Q8_K, ne00);
 
