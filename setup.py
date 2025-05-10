@@ -41,8 +41,27 @@ except ImportError:
     
 import torch
 capability = torch.cuda.get_device_capability()
-arch_list = f"{capability[0]}.{capability[1]}"
-os.environ["TORCH_CUDA_ARCH_LIST"] = arch_list
+current_arch = f"{capability[0]}.{capability[1]}"
+
+additional_archs = [
+    "3.5",  # Kepler
+    "3.7",  # Kepler
+    "5.0",  # Maxwell
+    "5.2",  # Maxwell
+    "6.0",  # Pascal
+    "6.1",  # Pascal
+    "7.0",  # Volta
+    "7.5",  # Turing
+    "8.0",  # Ampere
+    "8.6",  # Ampere
+    "8.9",  # Ada Lovelace
+    "9.0",  # Hopper
+]
+
+if current_arch not in additional_archs:
+    additional_archs.append(current_arch)
+
+os.environ["TORCH_CUDA_ARCH_LIST"] = ";".join(additional_archs)
 
 with_balance = os.environ.get("USE_BALANCE_SERVE", "0") == "1"
 
