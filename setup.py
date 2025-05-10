@@ -44,15 +44,6 @@ capability = torch.cuda.get_device_capability()
 current_arch = f"{capability[0]}.{capability[1]}"
 
 additional_archs = [
-    "3.5",  # Kepler
-    "3.7",  # Kepler
-    "5.0",  # Maxwell
-    "5.2",  # Maxwell
-    "6.0",  # Pascal
-    "6.1",  # Pascal
-    "7.0",  # Volta
-    "7.5",  # Turing
-    "8.0",  # Ampere
     "8.6",  # Ampere
     "8.9",  # Ada Lovelace
     "9.0",  # Hopper
