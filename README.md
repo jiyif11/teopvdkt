@@ -5,7 +5,6 @@ export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 `````
 
-
 ### 安装cuda 12.6<br>
 
 ### 安装依赖<br>

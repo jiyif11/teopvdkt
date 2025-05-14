@@ -18,7 +18,6 @@ echo "Installing ktransformers"
 export USE_BALANCE_SERVE=1
 patch -sr /dev/null -p1 --batch --forward third_party/llama.cpp/ggml-common.h < ggml-common.patch || true
 KTRANSFORMERS_FORCE_BUILD=TRUE pip install -v . --no-build-isolation
-pip install third_party/custom_flashinfer/
 
 SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
 echo "Copying thirdparty libs to $SITE_PACKAGES"
