@@ -3,13 +3,22 @@
 ## Introduction
 
 ### Overview
-We are excited to introduce **Intel GPU support** in KTransformers (Beta release). This implementation has been tested and developed using Intel Xeon Scalable processors and Intel Arc GPU's (such as A770 and B580).
+We are excited to introduce **Intel GPU support** in KTransformers (Beta release). This implementation has been tested and developed using Intel Xeon Scalable processors and Intel Arc GPUs (such as A770 and B580).
 
 ## Installation Guide
 
 ### 1. Install Intel GPU Driver
 Begin by installing the GPU drivers for your Intel GPU:
 - [Official GPU Installation Guide for Intel GPUs](https://dgpu-docs.intel.com/driver/overview.html)
+
+To verify that the kernel and compute drivers are installed and functional:
+
+```bash
+clinfo --list | grep Device
+ `-- Device #0: 13th Gen Intel(R) Core(TM) i9-13900K
+ `-- Device #0: Intel(R) Arc(TM) A770 Graphics
+ `-- Device #0: Intel(R) UHD Graphics 770
+```
 
 > [!Important]
 > Ensure that **Resizable BAR** is enabled in your system's BIOS before proceeding. This is essential for optimal GPU performance and to avoid potential issues such as `Bus error (core dumped)`. For detailed steps, please refer to the official guidance [here](https://www.intel.com/content/www/us/en/support/articles/000090831/graphics.html).
@@ -41,7 +50,6 @@ Install PyTorch with XPU backend support and [IPEX-LLM](https://github.com/intel
 pip install --pre --upgrade ipex-llm[xpu_2.6] --extra-index-url https://download.pytorch.org/whl/xpu
 pip uninstall torch torchvision torchaudio
 pip install torch==2.7+xpu torchvision torchaudio --index-url https://download.pytorch.org/whl/test/xpu # install torch2.7
-pip install packaging ninja cpufeature numpy
 pip uninstall intel-opencl-rt dpcpp-cpp-rt
 ```
 
@@ -84,7 +92,7 @@ python ktransformers/local_chat.py \
 ## Troubleshooting
 1. Best Known Config (BKC) to obtain best performance
 
-To obtain best performance on Intel GPU platform, we recommand to lock GPU frequency and set CPU to performance mode by below settings.
+To obtain best performance on Intel GPU platform, we recommend to lock GPU frequency and set CPU to performance mode by below settings.
 ```bash
 echo "performance" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 echo 0 | sudo tee /sys/devices/system/cpu/cpu*/power/energy_perf_bias
@@ -96,7 +104,7 @@ sudo xpu-smi config -d 0 -t 0 --frequencyrange 2400,2400
 
 2. Runtime error like `xpu/sycl/TensorCompareKernels.cpp:163: xxx. Aborted (core dumped)`
 
-This error is mostly realted to GPU driver. If you meet such error, you could update your `intel-level-zero-gpu` to `1.3.29735.27-914~22.04` (which is a verified version by us) by below command.
+This error is mostly related to GPU driver. If you meet such error, you could update your `intel-level-zero-gpu` to `1.3.29735.27-914~22.04` (which is a verified version by us) by below command.
 ```bash
 wget -qO - https://repositories.intel.com/gpu/intel-graphics.key | \
 sudo gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg
@@ -114,4 +122,12 @@ Installing Triton causes pytorch-triton-xpu to stop working. You can resolve the
 pip uninstall triton pytorch-triton-xpu
 # Reinstall correct version of pytorch-triton-xpu
 pip install pytorch-triton-xpu==3.3.0 --index-url  https://download.pytorch.org/whl/xpu
+```
+
+4. `ValueError: Unsupported backend: CUDA_HOME ROCM_HOME MUSA_HOME are not set and XPU is not available.`
+
+Ensure you have permissions to access /dev/dri/renderD*. This typically requires your user to be in the render group:
+```bash
+sudo gpasswd -a ${USER} render
+newgrp render
 ```

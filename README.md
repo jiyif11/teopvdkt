@@ -17,6 +17,7 @@ apt install libtbb-dev libssl-dev libcurl4-openssl-dev libaio1t64 libaio-dev lib
 
 ### 下载源码<br>
 
+<<<<<<< HEAD
 `````
 git clone http://192.168.4.222/lql/arm-kt.git
 cd arm-kt
@@ -25,6 +26,13 @@ pip install torch -i https://download.pytorch.org/whl/cu126
 pip install *.whl
 bash install.sh
 `````
+=======
+* **May 14, 2025**: Support Intel Arc GPU ([Tutorial](./doc/en/xpu.md)).
+
+* **Apr 29, 2025**: Support AMX-Int8、 AMX-BF16 and Qwen3MoE ([Tutorial](./doc/en/AMX.md))
+
+https://github.com/user-attachments/assets/fafe8aec-4e22-49a8-8553-59fb5c6b00a2
+>>>>>>> a3346c9a41535cfa38a62ba9e4a2fa200d78278a
 
 
 ### 启动命令<br>
