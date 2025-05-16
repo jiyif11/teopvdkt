@@ -29,18 +29,15 @@ model:
   gguf_path: /root/deepseek-R1/DeepSeek-R1-Q4_K_M/
 
   device: cuda:0
-<<<<<<< HEAD
-  max_new_tokens: 8896
-=======
-  cache_lens: 16384
-  max_new_tokens: 500
->>>>>>> 2d3aaef8b63a08d3e17cdd30d1cbb851e2898f9c
+  max_new_tokens: 8192
+  cache_lens: 32768
+  
 web:
   mount: False
   open_cross_domain: True
 
 ext:
-  cpu_infer: 61
+  cpu_infer: 60
 
 long_context:
   max_seq_len: 32000
