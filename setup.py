@@ -62,7 +62,7 @@ class CpuInstructInfo:
     FANCY = "FANCY"
     AVX512 = "AVX512"
     AVX2 = "AVX2"
-    CMAKE_NATIVE = "-DLLAMA_NATIVE=ON -D_GLIBCXX_USE_CXX11_ABI=1 -DCMAKE_C_FLAGS=-mcpu=neoverse-n2 -DCMAKE_CXX_FLAGS=-mcpu=neoverse-n2"
+    CMAKE_NATIVE = "-DLLAMA_NATIVE=ON -DCMAKE_C_FLAGS=-mcpu=neoverse-n2 -DCMAKE_CXX_FLAGS=-mcpu=neoverse-n2"
     CMAKE_FANCY = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON -DLLAMA_AVX512_FANCY_SIMD=ON"
     CMAKE_AVX512 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON -DLLAMA_AVX512=ON"
     CMAKE_AVX2 = "-DLLAMA_NATIVE=OFF -DLLAMA_FMA=ON -DLLAMA_F16C=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON"
@@ -471,6 +471,13 @@ class CMakeExtension(Extension):
         print(name, sourcedir)
         self.sourcedir = sourcedir
 
+def get_cmake_abi_args(cmake_args):
+    if torch.compiled_with_cxx11_abi():
+        cmake_args.append("-D_GLIBCXX_USE_CXX11_ABI=1")
+    else:
+        cmake_args.append("-D_GLIBCXX_USE_CXX11_ABI=0")
+    return cmake_args
+    
 class CMakeBuild(BuildExtension):
 
     def build_extension(self, ext) -> None:
