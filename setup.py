@@ -510,13 +510,9 @@ class CMakeBuild(BuildExtension):
         elif KTRANSFORMERS_BUILD_XPU:
             cmake_args += ["-DKTRANSFORMERS_USE_XPU=ON", "-DKTRANSFORMERS_USE_CUDA=OFF"]
         else:
-<<<<<<< HEAD
-            raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
-=======
             raise ValueError("Unsupported backend: CUDA_HOME, MUSA_HOME, and ROCM_HOME are not set and XPU is not available.")
         
         cmake_args = get_cmake_abi_args(cmake_args)
->>>>>>> a3346c9a41535cfa38a62ba9e4a2fa200d78278a
         # log cmake_args
         print("CMake args:", cmake_args)
         
