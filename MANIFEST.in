@@ -2,7 +2,7 @@ graft third_party
 graft ktransformers
 graft local_chat.py
 graft csrc
-include LICENSE README.md
+include LICENSE
 prune ktransformers/website
 prune ktransformers/logs
 prune ktransformers.egg-info
