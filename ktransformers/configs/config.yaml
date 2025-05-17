@@ -30,7 +30,7 @@ model:
 
   device: cuda:0
   max_new_tokens: 8192
-  cache_lens: 32768
+  cache_lens: 65535
   
 web:
   mount: False
@@ -40,7 +40,7 @@ ext:
   cpu_infer: 60
 
 long_context:
-  max_seq_len: 32000
+  max_seq_len: 32768
   block_size: 128
   local_windows_len: 4096
   second_select_num: 32
