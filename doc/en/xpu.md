@@ -47,7 +47,7 @@ strings ~/anaconda3/envs/ktransformers/lib/libstdc++.so.6 | grep GLIBCXX
 Install PyTorch with XPU backend support and [IPEX-LLM](https://github.com/intel/ipex-llm):
 
 ```bash
-pip install --pre --upgrade ipex-llm[xpu_2.6] --extra-index-url https://download.pytorch.org/whl/xpu
+pip install ipex-llm[xpu_2.6]==2.3.0rc1 --extra-index-url https://download.pytorch.org/whl/xpu
 pip uninstall torch torchvision torchaudio
 pip install torch==2.7+xpu torchvision torchaudio --index-url https://download.pytorch.org/whl/test/xpu # install torch2.7
 pip uninstall intel-opencl-rt dpcpp-cpp-rt
@@ -62,9 +62,7 @@ cd ktransformers
 git submodule update --init
 
 # Install dependencies
-bash install.sh
-pip uninstall triton pytorch-triton-xpu
-pip install pytorch-triton-xpu==3.3.0 --extra-index-url https://download.pytorch.org/whl/xpu # to avoid potential triton import error
+bash install.sh --dev xpu
 ```
 
 ## Running DeepSeek-R1 Models
