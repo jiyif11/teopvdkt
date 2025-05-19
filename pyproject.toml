@@ -32,6 +32,7 @@ dependencies = [
   "colorlog",
   "build",
   "fire",
+  "openai",
   "protobuf",
 ]
 
