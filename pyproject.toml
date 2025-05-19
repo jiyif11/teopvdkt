@@ -33,6 +33,7 @@ dependencies = [
   "build",
   "fire",
   "openai",
+  "zmq",
   "protobuf",
 ]
 
