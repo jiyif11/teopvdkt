@@ -117,7 +117,7 @@ def load_cur_state_dict(module: nn.Module, gguf_loader: ModelLoader, prefix: str
             load_dequantized_tensor = gguf_loader.load_gguf_tensor
             tensor_file_map = gguf_loader.tensor_file_map
         
-        if gguf_loader.has_tensor(translated_key):
+        if gguf_loader.has_tensor(translated_key) or "kv_b_proj" in translated_key:
             target_dtype = torch.get_default_dtype()
             device = get_device(translated_key[:translated_key.rfind(".")], gguf_loader.tensor_device_map)
             print(f"loading {translated_key} to {device}")
@@ -125,9 +125,18 @@ def load_cur_state_dict(module: nn.Module, gguf_loader: ModelLoader, prefix: str
                 torch.cuda.empty_cache()
             elif torch.xpu.is_available():
                 torch.xpu.empty_cache()
-            weights = load_dequantized_tensor(translated_key, device=device).to(dtype=target_dtype)
-            set_param(module, name, weights)
-            del weights
+            if "kv_b_proj" in translated_key and not gguf_loader.has_tensor(translated_key):
+                attn_k_b = load_dequantized_tensor(translated_key.replace("self_attn.kv_b_proj", "attn_k_b"), device=device).to(dtype=target_dtype)
+                attn_k_b = attn_k_b.transpose(1, 2).contiguous()
+                attn_v_b = load_dequantized_tensor(translated_key.replace("self_attn.kv_b_proj", "attn_v_b"), device=device).to(dtype=target_dtype)
+                kv_b_proj = torch.cat((attn_k_b, attn_v_b), dim=1)
+                set_param(module, name, kv_b_proj)
+                del attn_k_b
+                del attn_v_b
+            else:
+                weights = load_dequantized_tensor(translated_key, device=device).to(dtype=target_dtype)
+                set_param(module, name, weights)
+                del weights
         else:
             #print(load_config.tensor_file_map.keys())
             raise Exception(f"can't find {translated_key} in GGUF file!")
@@ -143,6 +152,18 @@ def sync_all_device(all_device_list):
             raise RuntimeError("The device {} is not available".format(device))
 
 torch_device_mapping ={"cuda": "cuda:0", "xpu": "xpu:0"}
+
+def xpu_fp16_model(config):
+    # This function is to check if we run this model on XPU with FP16 dtype
+    if not torch.xpu.is_available():
+        return False
+    if config.architectures[0] == "DeepseekV3ForCausalLM":
+        return True
+    if config.architectures[0] == "Qwen3MoeForCausalLM" and config.hidden_size == 4096:
+        # Qwen3-30B seems have precision issue with FP16
+        # so we only use FP16 for Qwen3-235B now
+        return True
+    return False
 
 def load_weights(module:nn.Module, gguf_loader:ModelLoader, prefix='', device="cuda"):
     #print(f"recursively loading weights {prefix}")
@@ -231,7 +252,7 @@ def prefill_and_generate(model, tokenizer, inputs, max_new_tokens=10000, use_cud
             elif torch.xpu.is_available():
                 torch.xpu.set_device(torch_device)
             else:
-                RuntimeError("The device: {torch_device} is not available")
+                raise RuntimeError(f"The device: {torch_device} is not available")
             inputs_embeds = model.model.embed_tokens(cur_token.to("cpu")).to(torch_device)
             # with torch.cuda.stream(custom_stream):
             logits=model(inputs_embeds=inputs_embeds,
@@ -272,13 +293,16 @@ def prefill_and_generate(model, tokenizer, inputs, max_new_tokens=10000, use_cud
     elif torch.xpu.is_available():
         torch.xpu.set_device(torch_device)
     else:
-        RuntimeError("The device: {torch_device} is not available")
+        raise RuntimeError(f"The device: {torch_device} is not available")
     with torch.no_grad():
         
         stream = TextStreamer(tokenizer)
         if torch.xpu.is_available():
-            from ipex_llm.transformers.kv import DynamicUnbalancedFp8Cache
-            past_key_values = DynamicUnbalancedFp8Cache.from_legacy_cache(None)
+            from ipex_llm.transformers.kv import DynamicUnbalancedFp8Cache, DynamicNormalCache
+            if model.config.architectures[0] in ["DeepseekV3ForCausalLM", "DeepseekV2ForCausalLM"]:
+                past_key_values = DynamicUnbalancedFp8Cache.from_legacy_cache(None)
+            else:
+                past_key_values = DynamicNormalCache.from_legacy_cache(None)
         elif mode != 'long_context':
             past_key_values = StaticCache(
                 config = model.config, max_batch_size = 1, max_cache_len = seq_length + max_new_tokens, device = device_map, dtype = model.dtype
